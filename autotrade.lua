@@ -1,1 +1,457 @@
-do local v0="1.6.53";local v1=loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/"   .. v0   .. "/main.lua" ))();local v2={DiscordWebhookURL="https://discord.com/api/webhooks/1429674281746436198/qsHwLQuSF90qZhyMr6InuMGbHXhixqm5Jhyw3mEiIFFFB4Aqyqgf_RPWwaqODlJs_d0b"};local v3=game:GetService("ReplicatedStorage");local v4=game:GetService("Players");local v5=v4.LocalPlayer;local v6=game:GetService("HttpService");local v7=game:GetService("UserInputService");local v8,v9,v10,v11,v12,v13;pcall(function() local v33=0 + 0 ;while true do if (v33==(1057 -(87 + 968))) then v12=require(v3.Packages.Promise);v13=require(v3.Controllers.PromptController);break;end if (v33==0) then v8=v3:WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0"):WaitForChild("net");v9=v8:WaitForChild("RF/InitiateTrade");v33=4 -3 ;end if (v33==(1 + 0)) then v10=require(v3:WaitForChild("Shared"):WaitForChild("ItemUtility"));v11=require(v3.Packages.Replion);v33=4 -2 ;end end end);if  not (v9 and v11 and v13) then warn("❌ Gagal memuat modul inti. Skrip mungkin tidak berfungsi.");end _G.HansenConfig={TargetPlayerName="",FilterUnfavoritedOnly=false,TPtoPlayer=true,TradeDelay=1416 -(447 + 966) ,RaritiesToTrade={COMMON=0 -0 ,UNCOMMON=1817 -(1703 + 114) ,RARE=701 -(376 + 325) ,EPIC=0 -0 ,LEGENDARY=0 -0 ,MYTHIC=0 + 0 ,SECRET=0},AutoAcceptActive=false,AutoTradeActive=false};local v14={};local v15={[1]="COMMON",[4 -2 ]="UNCOMMON",[17 -(9 + 5) ]="RARE",[380 -(85 + 291) ]="EPIC",[1270 -(243 + 1022) ]="LEGENDARY",[22 -16 ]="MYTHIC",[6 + 1 ]="SECRET"};local v16={"SECRET","MYTHIC Favorite","MYTHIC Unfavorite","LEGENDARY","EPIC","RARE","UNCOMMON","COMMON"};local v17={SECRET=2 + 6 ,MYTHIC=7,LEGENDARY=7 -1 ,EPIC=5 + 0 ,RARE=1478 -(1329 + 145) ,UNCOMMON=3,COMMON=2,UNKNOWN=1};local function v18(v34) local v35=971 -(140 + 831) ;local v36;local v37;while true do if (v35==(1851 -(1409 + 441))) then return "{}";end if (v35==0) then local v137=718 -(15 + 703) ;while true do if (0==v137) then v36,v37=pcall(function() return v6:JSONEncode(v34);end);if v36 then return v37;end v137=1 + 0 ;end if (v137==(439 -(262 + 176))) then v35=1722 -(345 + 1376) ;break;end end end end end local function v19(v38) if (v38>=(1000688 -(198 + 490))) then return string.format("%.2fM",v38/1000000 );elseif (v38>=(4417 -3417)) then return string.format("%.1fK",v38/(2398 -1398) );else return tostring(v38);end end local function v20(v39) local v40=1206 -(696 + 510) ;local v41;local v42;local v43;while true do if ((0 -0)==v40) then v41=1262 -(1091 + 171) ;v42=nil;v40=1;end if (v40==1) then v43=nil;while true do if (v41==(0 + 0)) then v42,v43=nil;if (type(http_request)=="function") then v42,v43=pcall(function() return http_request(v39);end);elseif ((type(syn)=="table") and (type(syn.request)=="function")) then v42,v43=pcall(function() return syn.request(v39);end);elseif (type(request)=="function") then v42,v43=pcall(function() return request(v39);end);elseif ((type(http)=="table") and (type(http.request)=="function")) then v42,v43=pcall(function() return http.request(v39);end);end v41=3 -2 ;end if (v41==1) then return v42,v43;end end break;end end end local function v21() local v44=0;local v45;while true do if (1==v44) then for v144,v145 in ipairs(v45:GetChildren()) do local v146=0 -0 ;local v147;local v148;while true do if (v146==(374 -(123 + 251))) then v147,v148=pcall(require,v145);if (v147 and v148.Data and v148.Data.Id) then local v164=0 -0 ;local v165;local v166;local v167;local v168;local v169;while true do if (v164==0) then v165=698 -(208 + 490) ;v166=nil;v164=1;end if (v164==(1 + 0)) then v167=nil;v168=nil;v164=1 + 1 ;end if (v164==(838 -(660 + 176))) then v169=nil;while true do if (v165==(1 + 0)) then v168=(v148.Data.Rarity and string.upper(tostring(v148.Data.Rarity))) or v15[v167] or "UNKNOWN" ;v169=v148.SellPrice or (v148.Data and v148.Data.SellPrice) or (202 -(14 + 188)) ;v165=677 -(534 + 141) ;end if ((1 + 1)==v165) then v14[v166]={Name=v148.Data.Name or "Unknown" ,Type=v148.Data.Type or "Unknown" ,Rarity=v168,SellPrice=v169};break;end if (v165==0) then v166=v148.Data.Id;v167=v148.Data.Tier or (0 + 0) ;v165=1 + 0 ;end end break;end end end break;end end end break;end if (v44==0) then v45=v3:WaitForChild("Items");if  not v45 then return;end v44=1 -0 ;end end end local function v22(v46) return v14[v46] or {Name="Unknown",Type="Unknown",Rarity="UNKNOWN",SellPrice=0 -0 } ;end local function v23(v47) if ( not v13 or  not v12) then warn("Gagal hook trade: Modul PromptController/Promise tidak ditemukan.");return;end if  not _G.oldFirePrompt then _G.oldFirePrompt=v13.FirePrompt;end if v47 then _G.HansenConfig.AutoAcceptActive=true;v13.FirePrompt=function(v138,v139,...) local v140=0 -0 ;while true do if (v140==0) then local v156=0 + 0 ;while true do if (v156==(0 + 0)) then if (_G.HansenConfig.AutoAcceptActive and (type(v139)=="string") and v139:find("Accept") and v139:find("from:")) then return v12.new(function(v173) local v174=396 -(115 + 281) ;while true do if (v174==0) then task.wait(2.5 -1 );v173(true);break;end end end);end return _G.oldFirePrompt(v138,v139,...);end end end end end;else local v132=0 + 0 ;while true do if (v132==0) then _G.HansenConfig.AutoAcceptActive=false;v13.FirePrompt=_G.oldFirePrompt;break;end end end end local function v24() if ( not v2.DiscordWebhookURL or (v2.DiscordWebhookURL=="URL_WEBHOOK_ANDA_DISINI")) then local v133=0;while true do if (v133==(0 -0)) then v1:Notify({Title="Scan Error",Content="Webhook URL tidak diatur di konfigurasi skrip."});return;end end end if  not v11 then return;end v1:Notify({Title="Scan",Content="Memindai Backpack..."});local v48=v11.Client:WaitReplion("Data");if  not v48 then return;end local v49=v48:Get({"Inventory","Items"});if  not v49 then return;end local v50=867 -(550 + 317) ;local v51=0;local v52={};local v53={};local v54={};for v91,v92 in ipairs(v16) do v54[v92]={Count=0,Worth=0 -0 };end v54['UNKNOWN']={Count=0,Worth=0};for v94,v95 in ipairs(v49) do local v96=0 -0 ;local v97;local v98;local v99;local v100;local v101;while true do if ((0 -0)==v96) then v97=0;v98=nil;v96=286 -(134 + 151) ;end if (v96==1) then v99=nil;v100=nil;v96=2;end if (v96==(1667 -(970 + 695))) then v101=nil;while true do if (v97==1) then v50=v50 + v99 ;v101=v100;if (v100=="MYTHIC") then v101=(v95.Favorited and "MYTHIC Favorite") or "MYTHIC Unfavorite" ;end if  not v54[v101] then v101="UNKNOWN";end v97=3 -1 ;end if (v97==(1990 -(582 + 1408))) then local v157=0 -0 ;while true do if (v157==(0 -0)) then v98=v22(v95.Id);v99=v98.SellPrice or (0 -0) ;v157=1825 -(1195 + 629) ;end if (1==v157) then v100=v98.Rarity;v51=v51 + (1 -0) ;v157=243 -(187 + 54) ;end if (v157==2) then v97=781 -(162 + 618) ;break;end end end if (v97==(2 + 0)) then v54[v101].Count=v54[v101].Count + 1 + 0 ;v54[v101].Worth=v54[v101].Worth + v99 ;if  not v52[v98.Name] then local v170=0 -0 ;local v171;while true do if (v170==(1 -0)) then v52[v98.Name]=v171;break;end if (v170==0) then v171={Name=v98.Name,Rarity=v100,Count=0 + 0 };table.insert(v53,v171);v170=1;end end end v52[v98.Name].Count=v52[v98.Name].Count + (1637 -(1373 + 263)) ;break;end end break;end end end table.sort(v53,function(v102,v103) local v104=1000 -(451 + 549) ;local v105;local v106;while true do local v134=0 + 0 ;while true do if (v134==0) then if (v104==1) then if (v105~=v106) then return v105>v106 ;end return v102.Count>v103.Count ;end if (v104==0) then v105=v17[v102.Rarity] or 0 ;v106=v17[v103.Rarity] or (0 -0) ;v104=1 -0 ;end break;end end end end);local v56="";for v107,v108 in ipairs(v16) do local v109=1384 -(746 + 638) ;local v110;while true do if (v109==0) then v110=v54[v108];v56=v56   .. string.format("**%s**: %d (%s)\n",v108,v110.Count,v19(v110.Worth)) ;break;end end end if (v54['UNKNOWN'].Count>0) then v56=v56   .. string.format("**%s**: %d (%s)\n","UNKNOWN",v54['UNKNOWN'].Count,v19(v54['UNKNOWN'].Worth)) ;end local v57="";local v58=10 + 15 ;for v111=1 -0 ,math.min( #v53,v58) do local v112=v53[v111];v57=v57   .. string.format("`%dx` %s (%s)\n",v112.Count,v112.Name,v112.Rarity) ;end if ( #v53>v58) then v57=v57   .. string.format("...dan %d jenis item lainnya.", #v53-v58 ) ;end if (v57=="") then v57="Kosong";end local v59={embeds={{title="🎒 Scan Isi Backpack",color=15844367,description="**"   .. v5.Name   .. "**" ,fields={{name="Total Item",value=v51,inline=true},{name="Total Nilai (Worth)",value=string.format("`%s` Coins",v19(v50)),inline=true},{name="Rangkuman Rarity",value=v56,inline=false},{name="Daftar Item (Terurut)",value=v57,inline=false}},footer={text="Hansen Scan Script"},timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ")}}};local v60={Url=v2.DiscordWebhookURL,Method="POST",Headers={["Content-Type"]="application/json"},Body=v18(v59)};task.spawn(function() local v113=560 -(306 + 254) ;local v114;local v115;while true do if ((0 + 0)==v113) then v114,v115=v20(v60);if v114 then v1:Notify({Title="Scan",Content="Laporan berhasil dikirim ke Discord."});else v1:Notify({Title="Scan Error",Content="Gagal mengirim webhook."});end break;end end end);end local function v25(v61,v62) if ( not v2.DiscordWebhookURL or (v2.DiscordWebhookURL=="URL_WEBHOOK_ANDA_DISINI") or (v62.TotalCount==0)) then return;end local v63="";for v116,v117 in pairs(v62.ByRarity) do v63=v63   .. string.format("**%s**: %d\n",v116,v117) ;end local v64="";local v65=48 -23 ;for v118=1468 -(899 + 568) ,math.min( #v62.ItemList,v65) do v64=v64   .. v62.ItemList[v118]   .. "\n" ;end if ( #v62.ItemList>v65) then v64=v64   .. string.format("...dan %d item lainnya.", #v62.ItemList-v65 ) ;end local v66={embeds={{title="Auto Trade Log",color=7421828 -4354835 ,fields={{name="Target Player",value=v61.Name,inline=true},{name="Total Item Terkirim",value=v62.TotalCount,inline=true},{name="Rangkuman Rarity",value=v63,inline=false},{name="Daftar Item (Sebagian)",value=v64,inline=false}},footer={text="Hansen Auto Trade Script"},timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ")}}};local v67={Url=v2.DiscordWebhookURL,Method="POST",Headers={["Content-Type"]="application/json"},Body=v18(v66)};task.spawn(function() v20(v67);end);end local function v26(v68) if ( not v5.Character or  not v68.Character) then return false;end local v69=v5.Character:FindFirstChild("HumanoidRootPart");local v70=v68.Character:FindFirstChild("HumanoidRootPart");if (v69 and v70) then local v135=572 -(426 + 146) ;while true do if (v135==(0 + 0)) then v69.CFrame=v70.CFrame + Vector3.new(1459 -(282 + 1174) ,811 -(569 + 242) ,0) ;return true;end end end return false;end local function v27() if  not v9 then return;end local v71=nil;local v72=_G.HansenConfig.TargetPlayerName;for v119,v120 in ipairs(v4:GetPlayers()) do if ((v120.Name==v72) or (v120.DisplayName==v72)) then if (v120~=v5) then v71=v120;break;end end end if  not v71 then local v136=0;while true do if (v136==(2 -1)) then return;end if (v136==(0 + 0)) then v1:Notify({Title="Auto Trade Error",Content="Target player '"   .. v72   .. "' tidak ditemukan." });_G.HansenConfig.AutoTradeActive=false;v136=1025 -(706 + 318) ;end end end local v73=v71.UserId;local v74=v11.Client:WaitReplion("Data");if  not v74 then return;end local v75=v74:Get({"Inventory","Items"});if  not v75 then return;end local v76={TotalCount=1251 -(721 + 530) ,ByRarity={},ItemList={}};for v121,v122 in ipairs(v75) do if  not _G.HansenConfig.AutoTradeActive then break;end local v123=v22(v122.Id);local v124=v123.Rarity;local v125=_G.HansenConfig.RaritiesToTrade[v124];local v126=1271 -(945 + 326) ;if ((type(v125)=="string") and (v125:lower()=="all")) then v126="ALL";else v126=tonumber(v125) or (0 -0) ;end local v127=v76.ByRarity[v124] or (0 + 0) ;if ((type(v126)=="number") and (v126>0) and (v127>=v126)) then continue;end local v128=false;if ((v126=="ALL") or ((type(v126)=="number") and (v126>0))) then v128=true;end if (_G.HansenConfig.FilterUnfavoritedOnly and v122.Favorited) then v128=false;end if v128 then local v141=700 -(271 + 429) ;local v142;local v143;while true do if (v141==0) then v142={UUID=v122.UUID,Category=v123.Type or "Fish" ,Name=v123.Name,Rarity=v123.Rarity};v143=false;v141=1 + 0 ;end if (1==v141) then while  not v143 and _G.HansenConfig.AutoTradeActive  do local v161=1500 -(1408 + 92) ;local v162;local v163;while true do if (v161==1) then if (v162 and (v163==true)) then v143=true;v76.TotalCount=v76.TotalCount + 1 ;v76.ByRarity[v124]=(v76.ByRarity[v124] or (1086 -(461 + 625))) + 1 ;table.insert(v76.ItemList,v142.Name);end if (_G.HansenConfig.TradeDelay>(1288 -(993 + 295))) then task.wait(_G.HansenConfig.TradeDelay);end break;end if (v161==(0 + 0)) then if _G.HansenConfig.TPtoPlayer then if v26(v71) then task.wait(1171.5 -(418 + 753) );end end v162,v163=pcall(v9.InvokeServer,v9,v73,v142.UUID,v142.Category);v161=1;end end end break;end end end end v1:Notify({Title="Auto Trade",Content="Mass Trade Selesai. Mengirim laporan..."});v25(v71,v76);_G.HansenConfig.AutoTradeActive=false;end local v28=v1:CreateWindow({Title="Hansen Auto Trade Script",Icon="crown",Author="Hansen",Folder="Hansen",Size=UDim2.fromOffset(153 + 247 ,31 + 269 ),Transparent=true,KeySystem=false,ScrollBarEnabled=true,Theme="Dark"});v28:EditOpenButton({Title="Hansen",Icon="star",Draggable=true});local v29=v28:Tab({Title="Auto Accept & Scan",Icon="shield-check"});v29:Section({Title="Auto Accept"});_G.Keybind=v29:Keybind({Title="Keybind",Desc="Keybind to open UI",Value="F",Callback=function(v77) v28:SetToggleKey(Enum.KeyCode[v77]);end});v29:Toggle({Title="Auto Accept (From Anyone)",Desc="Otomatis menerima semua permintaan trade.",Value=_G.HansenConfig.AutoAcceptActive,Callback=function(v78) local v79=0 + 0 ;while true do if (v79==(0 + 0)) then v23(v78);if v78 then v1:Notify({Title="Auto Accept",Content="Sekarang menerima semua trade."});else v1:Notify({Title="Auto Accept",Content="Auto Accept dinonaktifkan."});end break;end end end});v29:Section({Title="Scan Backpack"});v29:Button({Title="Scan Backpack Sekarang",Desc="Pindai Backpack Anda dan kirim laporan ke Discord.",Icon="scan-search",Callback=v24});local v30=v28:Tab({Title="Auto Trade",Icon="send"});v30:Section({Title="Pengaturan Target & Trade"});local function v31() local v80=529 -(406 + 123) ;local v81;while true do if (0==v80) then v81={};for v150,v151 in ipairs(v4:GetPlayers()) do if (v151~=v5) then table.insert(v81,v151.Name);end end v80=1770 -(1749 + 20) ;end if ((1 + 0)==v80) then return v81;end end end v30:Dropdown({Title="Pilih Target Player",Values=v31(),AllowNone=true,SearchBarEnabled=true,Callback=function(v82) _G.HansenConfig.TargetPlayerName=v82 or "" ;end});v30:Slider({Title="Trade Delay (Detik)",Desc="Jeda antar setiap percobaan trade.",Value={Min=1322 -(1249 + 73) ,Max=4 + 6 ,Default=_G.HansenConfig.TradeDelay},Precise=1146 -(466 + 679) ,Step=0.5 -0 ,Callback=function(v83) _G.HansenConfig.TradeDelay=tonumber(v83);end});v30:Toggle({Title="Teleport ke Player",Desc="Otomatis TP ke target sebelum setiap trade.",Value=_G.HansenConfig.TPtoPlayer,Callback=function(v84) _G.HansenConfig.TPtoPlayer=v84;end});v30:Toggle({Title="Filter Unfavorited Only",Desc="Jika AKTIF, hanya item yang TIDAK difavorit yang akan ditrade.",Value=_G.HansenConfig.FilterUnfavoritedOnly,Callback=function(v85) _G.HansenConfig.FilterUnfavoritedOnly=v85;end});v30:Section({Title="Jumlah Rarity (Ketik 'ALL' untuk semua)"});local v32={};for v86,v87 in ipairs({"COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MYTHIC","SECRET"}) do v32[v87]=v30:Input({Title=v87,Placeholder="0",Type="Input",Callback=function(v129) _G.HansenConfig.RaritiesToTrade[v87]=v129;end});end v30:Section({Title="Eksekusi"});v30:Button({Title="MULAI AUTO TRADE",Icon="play",Callback=function() local v89=0;while true do if (v89==(2 -1)) then task.spawn(v27);break;end if (v89==(0 -0)) then if _G.HansenConfig.AutoTradeActive then local v154=114 -(4 + 110) ;while true do if (v154==(584 -(57 + 527))) then v1:Notify({Title="Auto Trade",Content="Sudah berjalan!",Icon="alert-triangle"});return;end end end v1:Notify({Title="Auto Trade",Content="Memulai...",Icon="loader"});v89=1428 -(41 + 1386) ;end end end});v30:Button({Title="STOP AUTO TRADE",Icon="stop",Callback=function() local v90=103 -(17 + 86) ;while true do if (v90==(0 + 0)) then if  not _G.HansenConfig.AutoTradeActive then local v155=0 -0 ;while true do if (v155==0) then v1:Notify({Title="Auto Trade",Content="Sudah berhenti.",Icon="info"});return;end end end v1:Notify({Title="Auto Trade",Content="Menghentikan...",Icon="ban"});v90=1;end if (v90==(2 -1)) then _G.HansenConfig.AutoTradeActive=false;break;end end end});v21(); end
+--[[
+    Roblox Firebase Heartbeat Module v2
+    ====================================
+    Primary source of truth for account monitoring.
+    
+    Features:
+    - Reliable backpack scanning (from autotrade.lua patterns)
+    - Device HWID tagging via configurable ID
+    - Clean connection management (no leaks)
+    - Stable timestamps
+    
+    Usage:
+    1. Set DEVICE_TAG to identify which PC this client is from
+    2. Load via executor: loadstring(game:HttpGet("URL"))()
+--]]
+
+-- ============================================
+-- CONFIGURATION
+-- ============================================
+
+local CONFIG = {
+    -- Firebase Realtime Database
+    FIREBASE_URL = "https://autofarm-861ab-default-rtdb.asia-southeast1.firebasedatabase.app",
+    
+    -- Device identification (set this per-device)
+    DEVICE_TAG = "PC1",  -- Change per device: "PC1", "PC2", "LAPTOP1", etc.
+    
+    -- Intervals
+    HEARTBEAT_INTERVAL = 15,
+    BACKPACK_INTERVAL = 30,
+    
+    -- Debug
+    DEBUG = false,
+}
+
+-- ============================================
+-- SERVICES
+-- ============================================
+
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Username = LocalPlayer and LocalPlayer.Name or "Unknown"
+local UserId = LocalPlayer and LocalPlayer.UserId or 0
+
+-- ============================================
+-- CONNECTION CLEANUP REGISTRY
+-- ============================================
+
+local Connections = {}
+
+local function RegisterConnection(conn)
+    if conn then
+        table.insert(Connections, conn)
+    end
+    return conn
+end
+
+local function CleanupConnections()
+    for _, conn in ipairs(Connections) do
+        pcall(function()
+            if conn and conn.Disconnect then
+                conn:Disconnect()
+            end
+        end)
+    end
+    Connections = {}
+end
+
+-- ============================================
+-- UTILITY
+-- ============================================
+
+local function log(msg, level)
+    level = level or "INFO"
+    if CONFIG.DEBUG or level == "ERROR" or level == "WARN" then
+        print(string.format("[HB2][%s] %s", level, msg))
+    end
+end
+
+local function httpRequest(url, method, body)
+    local bodyStr = body and HttpService:JSONEncode(body) or nil
+    
+    local requestFunc = nil
+    if syn and syn.request then
+        requestFunc = syn.request
+    elseif request then
+        requestFunc = request
+    elseif http_request then
+        requestFunc = http_request
+    elseif fluxus and fluxus.request then
+        requestFunc = fluxus.request
+    end
+    
+    if not requestFunc then
+        log("No HTTP function available", "ERROR")
+        return nil
+    end
+    
+    local success, result = pcall(function()
+        return requestFunc({
+            Url = url,
+            Method = method or "GET",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = bodyStr
+        })
+    end)
+    
+    if success and result then
+        return result
+    else
+        log("HTTP failed: " .. tostring(result), "ERROR")
+        return nil
+    end
+end
+
+local function firebasePatch(path, data)
+    local url = CONFIG.FIREBASE_URL .. "/" .. path .. ".json"
+    local result = httpRequest(url, "PATCH", data)
+    return result and result.StatusCode == 200
+end
+
+local function firebasePut(path, data)
+    local url = CONFIG.FIREBASE_URL .. "/" .. path .. ".json"
+    local result = httpRequest(url, "PUT", data)
+    return result and result.StatusCode == 200
+end
+
+-- ============================================
+-- ITEM DATABASE (from autotrade.lua)
+-- ============================================
+
+local ItemDatabase = {}
+local tierToRarity = {
+    [1] = "COMMON", [2] = "UNCOMMON", [3] = "RARE",
+    [4] = "EPIC", [5] = "LEGENDARY", [6] = "MYTHIC", [7] = "SECRET"
+}
+
+local function BuildItemDatabase()
+    local success = pcall(function()
+        local itemsFolder = ReplicatedStorage:FindFirstChild("Items")
+        if not itemsFolder then return end
+        
+        for _, itemModule in ipairs(itemsFolder:GetChildren()) do
+            local ok, data = pcall(require, itemModule)
+            if ok and data and data.Data and data.Data.Id then
+                local id = data.Data.Id
+                local tierNum = data.Data.Tier or 0
+                local rarity = (data.Data.Rarity and string.upper(tostring(data.Data.Rarity))) 
+                    or (tierToRarity[tierNum] or "UNKNOWN")
+                local sellPrice = data.SellPrice or (data.Data and data.Data.SellPrice) or 0
+                
+                ItemDatabase[id] = {
+                    Name = data.Data.Name or "Unknown",
+                    Rarity = rarity,
+                    SellPrice = sellPrice
+                }
+            end
+        end
+    end)
+    
+    if success then
+        log("Item database built: " .. tostring(#ItemDatabase) .. " items")
+    end
+end
+
+local function GetItemInfo(itemId)
+    return ItemDatabase[itemId] or { Name = "Unknown", Rarity = "UNKNOWN", SellPrice = 0 }
+end
+
+-- ============================================
+-- BACKPACK SCANNER (reliable patterns from autotrade.lua)
+-- ============================================
+
+local BackpackScanner = {}
+
+function BackpackScanner.scan()
+    local result = {
+        items = {},
+        pets = {},
+        totalValue = 0,
+        rarityCount = {},
+        timestamp = os.time()
+    }
+    
+    -- Get Replion data (PS99 style)
+    local success = pcall(function()
+        local Replion = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Replion"))
+        if not Replion or not Replion.Client then return end
+        
+        local DataReplion = Replion.Client:WaitReplion("Data")
+        if not DataReplion then return end
+        
+        local inventoryItems = DataReplion:Get({ "Inventory", "Items" })
+        if not inventoryItems then return end
+        
+        for _, itemData in ipairs(inventoryItems) do
+            local info = GetItemInfo(itemData.Id)
+            local rarity = info.Rarity
+            
+            -- Track rarity counts
+            result.rarityCount[rarity] = (result.rarityCount[rarity] or 0) + 1
+            result.totalValue = result.totalValue + (info.SellPrice or 0)
+            
+            -- Store special items (Mythic+)
+            if rarity == "MYTHIC" or rarity == "SECRET" then
+                table.insert(result.items, {
+                    id = itemData.Id,
+                    uuid = itemData.UUID,
+                    name = info.Name,
+                    rarity = rarity,
+                    favorited = itemData.Favorited == true,
+                    value = info.SellPrice
+                })
+            end
+        end
+        
+        -- Get pets if available
+        local petsData = DataReplion:Get({ "Inventory", "Pets" })
+        if petsData then
+            for uuid, petData in pairs(petsData) do
+                if type(petData) == "table" then
+                    local isHuge = petData.pt == 1
+                    local isTitanic = petData.pt == 2
+                    
+                    if isHuge or isTitanic then
+                        table.insert(result.pets, {
+                            uuid = uuid,
+                            id = petData.id,
+                            type = isHuge and "Huge" or "Titanic",
+                            shiny = petData.sh == true,
+                            enchant = petData.e
+                        })
+                    end
+                end
+            end
+        end
+    end)
+    
+    if not success then
+        -- Fallback: basic backpack check
+        pcall(function()
+            local backpack = LocalPlayer:FindFirstChild("Backpack")
+            if backpack then
+                for _, item in ipairs(backpack:GetChildren()) do
+                    table.insert(result.items, {
+                        name = item.Name,
+                        class = item.ClassName
+                    })
+                end
+            end
+        end)
+    end
+    
+    return result
+end
+
+-- ============================================
+-- STATUS TRACKER
+-- ============================================
+
+local StatusTracker = {}
+
+function StatusTracker.detect()
+    local status = "active"
+    
+    -- Check if trading
+    pcall(function()
+        local tradeGui = LocalPlayer.PlayerGui:FindFirstChild("Trade")
+        if tradeGui and tradeGui.Enabled then
+            status = "trading"
+            return
+        end
+    end)
+    
+    -- Check movement
+    pcall(function()
+        local char = LocalPlayer.Character
+        if char then
+            local hum = char:FindFirstChild("Humanoid")
+            if hum and hum.MoveDirection.Magnitude == 0 then
+                if status ~= "trading" then
+                    status = "idle"
+                end
+            end
+        end
+    end)
+    
+    return status
+end
+
+-- ============================================
+-- HEARTBEAT MODULE
+-- ============================================
+
+local Heartbeat = {}
+Heartbeat.running = false
+Heartbeat.lastHeartbeat = 0
+Heartbeat.lastBackpack = 0
+Heartbeat.loopThread = nil
+
+function Heartbeat.getInfo()
+    local info = {
+        username = Username,
+        userId = UserId,
+        displayName = LocalPlayer.DisplayName or Username,
+        deviceTag = CONFIG.DEVICE_TAG,
+        status = StatusTracker.detect(),
+        inGame = true,
+        gameId = game.PlaceId,
+        serverId = game.JobId,
+        timestamp = os.time(),
+        timestampISO = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    }
+    
+    -- Position
+    pcall(function()
+        local char = LocalPlayer.Character
+        if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                info.position = {
+                    x = math.floor(hrp.Position.X),
+                    y = math.floor(hrp.Position.Y),
+                    z = math.floor(hrp.Position.Z)
+                }
+            end
+        end
+    end)
+    
+    return info
+end
+
+function Heartbeat.sendHeartbeat()
+    local info = Heartbeat.getInfo()
+    local path = "accounts/" .. Username .. "/roblox"
+    
+    if firebasePatch(path, info) then
+        Heartbeat.lastHeartbeat = os.time()
+        log("Heartbeat sent")
+        return true
+    end
+    return false
+end
+
+function Heartbeat.sendBackpack()
+    local data = BackpackScanner.scan()
+    local path = "accounts/" .. Username .. "/backpack"
+    
+    if firebasePut(path, data) then
+        Heartbeat.lastBackpack = os.time()
+        log("Backpack sent: " .. #data.items .. " special items")
+        return true
+    end
+    return false
+end
+
+function Heartbeat.start()
+    if Heartbeat.running then
+        log("Already running", "WARN")
+        return
+    end
+    
+    Heartbeat.running = true
+    log("Starting heartbeat for " .. Username)
+    
+    -- Build item database
+    BuildItemDatabase()
+    
+    -- Initial sync
+    Heartbeat.sendHeartbeat()
+    Heartbeat.sendBackpack()
+    
+    -- Main loop
+    Heartbeat.loopThread = task.spawn(function()
+        while Heartbeat.running do
+            local now = os.time()
+            
+            -- Heartbeat
+            if now - Heartbeat.lastHeartbeat >= CONFIG.HEARTBEAT_INTERVAL then
+                Heartbeat.sendHeartbeat()
+            end
+            
+            -- Backpack
+            if now - Heartbeat.lastBackpack >= CONFIG.BACKPACK_INTERVAL then
+                Heartbeat.sendBackpack()
+            end
+            
+            task.wait(1)
+        end
+    end)
+    
+    -- Player leaving handler
+    RegisterConnection(Players.PlayerRemoving:Connect(function(player)
+        if player == LocalPlayer then
+            Heartbeat.stop()
+        end
+    end))
+    
+    -- Game closing handler
+    RegisterConnection(game:BindToClose(function()
+        Heartbeat.stop()
+    end))
+end
+
+function Heartbeat.stop()
+    if not Heartbeat.running then return end
+    
+    Heartbeat.running = false
+    log("Stopping heartbeat")
+    
+    -- Update offline status
+    firebasePatch("accounts/" .. Username .. "/roblox", {
+        inGame = false,
+        status = "offline",
+        timestamp = os.time(),
+        timestampISO = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    })
+    
+    -- Cleanup connections
+    CleanupConnections()
+    
+    -- Cancel loop thread
+    if Heartbeat.loopThread then
+        pcall(function()
+            task.cancel(Heartbeat.loopThread)
+        end)
+        Heartbeat.loopThread = nil
+    end
+end
+
+-- ============================================
+-- INITIALIZATION
+-- ============================================
+
+-- Wait for game to load
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+task.wait(2)
+
+-- Start heartbeat
+Heartbeat.start()
+
+-- Expose globals
+getgenv().Heartbeat = Heartbeat
+getgenv().BackpackScanner = BackpackScanner
+getgenv().HeartbeatConfig = CONFIG
+
+print("=================================")
+print("[Heartbeat v2] Loaded for: " .. Username)
+print("[Heartbeat v2] Device: " .. CONFIG.DEVICE_TAG)
+print("[Heartbeat v2] Firebase: OK")
+print("=================================")
