@@ -1,4 +1,3 @@
-
 --[[
     Roblox Firebase Heartbeat Module v2
     ====================================
@@ -44,7 +43,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
-local Username = LocalPlayer and LocalPlayer.Name or "Unknown"
+local Username = LocalPlayer and string.lower(LocalPlayer.Name) or "unknown"
 local UserId = LocalPlayer and LocalPlayer.UserId or 0
 
 -- ============================================
@@ -178,9 +177,65 @@ end
 
 local BackpackScanner = {}
 
+-- Blacklist of spam items to exclude
+local ITEM_BLACKLIST = {
+    ["hermit crab"] = true,
+    ["shell"] = true,
+    ["seashell"] = true,
+    -- Add more spam items as needed
+}
+
+local function isBlacklisted(itemName)
+    if not itemName then return false end
+    local lower = string.lower(itemName)
+    return ITEM_BLACKLIST[lower] or false
+end
+
+-- Compress items into "Name xCount" format
+local function compressItems(items, maxDisplay)
+    maxDisplay = maxDisplay or 10
+    local counts = {}
+    local order = {}
+    
+    for _, item in ipairs(items) do
+        local name = item.name or "Unknown"
+        if not isBlacklisted(name) then
+            if not counts[name] then
+                counts[name] = { count = 0, item = item }
+                table.insert(order, name)
+            end
+            counts[name].count = counts[name].count + 1
+        end
+    end
+    
+    local compressed = {}
+    for i, name in ipairs(order) do
+        if i > maxDisplay then
+            table.insert(compressed, {
+                name = "+" .. (#order - maxDisplay) .. " more items",
+                rarity = "INFO",
+                count = 0
+            })
+            break
+        end
+        
+        local data = counts[name]
+        local displayName = data.count > 1 and (name .. " x" .. data.count) or name
+        table.insert(compressed, {
+            name = displayName,
+            rarity = data.item.rarity,
+            favorited = data.item.favorited,
+            count = data.count
+        })
+    end
+    
+    return compressed
+end
+
 function BackpackScanner.scan()
     local result = {
         items = {},
+        secretItems = {},  -- Only SECRET rarity, compressed
         pets = {},
         totalValue = 0,
         rarityCount = {},
@@ -188,6 +243,8 @@ function BackpackScanner.scan()
     }
     
     -- Get Replion data (PS99 style)
+    local rawSecretItems = {}
+    
     local success = pcall(function()
         local Replion = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Replion"))
         if not Replion or not Replion.Client then return end
@@ -201,17 +258,18 @@ function BackpackScanner.scan()
         for _, itemData in ipairs(inventoryItems) do
             local info = GetItemInfo(itemData.Id)
             local rarity = info.Rarity
+            local itemName = info.Name or "Unknown"
             
             -- Track rarity counts
             result.rarityCount[rarity] = (result.rarityCount[rarity] or 0) + 1
             result.totalValue = result.totalValue + (info.SellPrice or 0)
             
-            -- Store special items (Mythic+)
-            if rarity == "MYTHIC" or rarity == "SECRET" then
-                table.insert(result.items, {
+            -- Only store SECRET items (not MYTHIC) and filter blacklist
+            if rarity == "SECRET" and not isBlacklisted(itemName) then
+                table.insert(rawSecretItems, {
                     id = itemData.Id,
                     uuid = itemData.UUID,
-                    name = info.Name,
+                    name = itemName,
                     rarity = rarity,
                     favorited = itemData.Favorited == true,
                     value = info.SellPrice
@@ -241,16 +299,21 @@ function BackpackScanner.scan()
         end
     end)
     
+    -- Compress secret items for cleaner output (max 10 displayed)
+    result.secretItems = compressItems(rawSecretItems, 10)
+    
     if not success then
         -- Fallback: basic backpack check
         pcall(function()
             local backpack = LocalPlayer:FindFirstChild("Backpack")
             if backpack then
                 for _, item in ipairs(backpack:GetChildren()) do
-                    table.insert(result.items, {
-                        name = item.Name,
-                        class = item.ClassName
-                    })
+                    if not isBlacklisted(item.Name) then
+                        table.insert(result.items, {
+                            name = item.Name,
+                            class = item.ClassName
+                        })
+                    end
                 end
             end
         end)
@@ -401,10 +464,20 @@ function Heartbeat.start()
         end
     end))
     
-    -- Game closing handler
-    RegisterConnection(game:BindToClose(function()
-        Heartbeat.stop()
-    end))
+    -- Game closing handler - BindToClose only works on server
+    -- For client, use game.Close event or detect disconnect via heartbeat failure
+    if RunService:IsServer() then
+        game:BindToClose(function()
+            Heartbeat.stop()
+        end)
+    else
+        -- Client-side cleanup: detect when LocalPlayer is about to leave
+        LocalPlayer.OnTeleport:Connect(function(state)
+            if state == Enum.TeleportState.Started then
+                Heartbeat.stop()
+            end
+        end)
+    end
 end
 
 function Heartbeat.stop()
