@@ -1,17 +1,16 @@
 --[[
-    Roblox Firebase Heartbeat Module v2
+    Roblox Firebase Heartbeat Module v3
     ====================================
-    Primary source of truth for account monitoring.
+    For Fish It! game monitoring.
     
     Features:
-    - Reliable backpack scanning (from autotrade.lua patterns)
-    - Device HWID tagging via configurable ID
-    - Clean connection management (no leaks)
-    - Stable timestamps
+    - Simple inventory scanning for Fish It!
+    - Device info comes from run.py (not hardcoded)
+    - Clean connection management
+    - Status: online when in game
     
     Usage:
-    1. Set DEVICE_TAG to identify which PC this client is from
-    2. Load via executor: loadstring(game:HttpGet("URL"))()
+    loadstring(game:HttpGet("URL"))()
 --]]
 
 -- ============================================
@@ -22,14 +21,11 @@ local CONFIG = {
     -- Firebase Realtime Database
     FIREBASE_URL = "https://autofarm-861ab-default-rtdb.asia-southeast1.firebasedatabase.app",
     
-    -- Device identification (set this per-device)
-    DEVICE_TAG = "PC1",  -- Change per device: "PC1", "PC2", "LAPTOP1", etc.
-    
-    -- Intervals
+    -- Intervals (seconds)
     HEARTBEAT_INTERVAL = 15,
     BACKPACK_INTERVAL = 30,
     
-    -- Debug
+    -- Debug mode
     DEBUG = false,
 }
 
@@ -77,7 +73,7 @@ end
 local function log(msg, level)
     level = level or "INFO"
     if CONFIG.DEBUG or level == "ERROR" or level == "WARN" then
-        print(string.format("[HB2][%s] %s", level, msg))
+        print(string.format("[HB][%s] %s", level, msg))
     end
 end
 
@@ -130,68 +126,15 @@ local function firebasePut(path, data)
 end
 
 -- ============================================
--- ITEM DATABASE (from autotrade.lua)
--- ============================================
-
-local ItemDatabase = {}
-local tierToRarity = {
-    [1] = "COMMON", [2] = "UNCOMMON", [3] = "RARE",
-    [4] = "EPIC", [5] = "LEGENDARY", [6] = "MYTHIC", [7] = "SECRET"
-}
-
-local function BuildItemDatabase()
-    local success = pcall(function()
-        local itemsFolder = ReplicatedStorage:FindFirstChild("Items")
-        if not itemsFolder then return end
-        
-        for _, itemModule in ipairs(itemsFolder:GetChildren()) do
-            local ok, data = pcall(require, itemModule)
-            if ok and data and data.Data and data.Data.Id then
-                local id = data.Data.Id
-                local tierNum = data.Data.Tier or 0
-                local rarity = (data.Data.Rarity and string.upper(tostring(data.Data.Rarity))) 
-                    or (tierToRarity[tierNum] or "UNKNOWN")
-                local sellPrice = data.SellPrice or (data.Data and data.Data.SellPrice) or 0
-                
-                ItemDatabase[id] = {
-                    Name = data.Data.Name or "Unknown",
-                    Rarity = rarity,
-                    SellPrice = sellPrice
-                }
-            end
-        end
-    end)
-    
-    if success then
-        log("Item database built: " .. tostring(#ItemDatabase) .. " items")
-    end
-end
-
-local function GetItemInfo(itemId)
-    return ItemDatabase[itemId] or { Name = "Unknown", Rarity = "UNKNOWN", SellPrice = 0 }
-end
-
--- ============================================
--- BACKPACK SCANNER (reliable patterns from autotrade.lua)
+-- FISH IT! INVENTORY SCANNER
 -- ============================================
 
 local BackpackScanner = {}
 
--- Blacklist of spam items to exclude
-local ITEM_BLACKLIST = {
-    ["hermit crab"] = true,
-    ["shell"] = true,
-    ["seashell"] = true,
-    -- Add more spam items as needed
-}
+-- Rarity tiers for Fish It!
+local RARITY_ORDER = {"Secret", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"}
 
-local function isBlacklisted(itemName)
-    if not itemName then return false end
-    local lower = string.lower(itemName)
-    return ITEM_BLACKLIST[lower] or false
-end
-
--- Compress items into "Name xCount" format
+-- Compress items: group by name and count
 local function compressItems(items, maxDisplay)
     maxDisplay = maxDisplay or 10
     local counts = {}
@@ -199,21 +142,19 @@ local function compressItems(items, maxDisplay)
     
     for _, item in ipairs(items) do
         local name = item.name or "Unknown"
-        if not isBlacklisted(name) then
-            if not counts[name] then
-                counts[name] = { count = 0, item = item }
-                table.insert(order, name)
-            end
-            counts[name].count = counts[name].count + 1
+        if not counts[name] then
+            counts[name] = { count = 0, item = item }
+            table.insert(order, name)
         end
+        counts[name].count = counts[name].count + 1
     end
     
     local compressed = {}
     for i, name in ipairs(order) do
         if i > maxDisplay then
             table.insert(compressed, {
-                name = "+" .. (#order - maxDisplay) .. " more items",
-                rarity = "INFO",
+                name = "+" .. (#order - maxDisplay) .. " more",
+                rarity = "info",
                 count = 0
             })
             break
@@ -223,8 +164,7 @@ local function compressItems(items, maxDisplay)
         local displayName = data.count > 1 and (name .. " x" .. data.count) or name
         table.insert(compressed, {
             name = displayName,
-            rarity = data.item.rarity,
-            favorited = data.item.favorited,
+            rarity = data.item.rarity or "Common",
             count = data.count
         })
     end
@@ -235,83 +175,95 @@ end
 function BackpackScanner.scan()
     local result = {
         items = {},
-        secretItems = {},  -- Only SECRET rarity, compressed
-        pets = {},
+        secretItems = {},
         totalValue = 0,
         rarityCount = {},
         timestamp = os.time()
     }
     
-    -- Get Replion data (PS99 style)
     local rawSecretItems = {}
     
+    -- Method 1: Try to get inventory from Fish It! data stores
     local success = pcall(function()
-        local Replion = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Replion"))
-        if not Replion or not Replion.Client then return end
+        -- Fish It! uses different data structure
+        -- Try common patterns for fishing games
         
-        local DataReplion = Replion.Client:WaitReplion("Data")
-        if not DataReplion then return end
+        -- Check for Inventory in PlayerGui or leaderstats
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
         
-        local inventoryItems = DataReplion:Get({ "Inventory", "Items" })
-        if not inventoryItems then return end
+        -- Try to find inventory folder in player
+        local inventory = LocalPlayer:FindFirstChild("Inventory") 
+            or LocalPlayer:FindFirstChild("Backpack")
+            or LocalPlayer:FindFirstChild("Fish")
+            or LocalPlayer:FindFirstChild("Items")
         
-        for _, itemData in ipairs(inventoryItems) do
-            local info = GetItemInfo(itemData.Id)
-            local rarity = info.Rarity
-            local itemName = info.Name or "Unknown"
-            
-            -- Track rarity counts
-            result.rarityCount[rarity] = (result.rarityCount[rarity] or 0) + 1
-            result.totalValue = result.totalValue + (info.SellPrice or 0)
-            
-            -- Only store SECRET items (not MYTHIC) and filter blacklist
-            if rarity == "SECRET" and not isBlacklisted(itemName) then
-                table.insert(rawSecretItems, {
-                    id = itemData.Id,
-                    uuid = itemData.UUID,
+        if inventory then
+            for _, item in ipairs(inventory:GetChildren()) do
+                local itemName = item.Name
+                local rarity = "Common"
+                local value = 0
+                
+                -- Try to get rarity from attributes or value objects
+                if item:GetAttribute("Rarity") then
+                    rarity = item:GetAttribute("Rarity")
+                elseif item:FindFirstChild("Rarity") then
+                    rarity = tostring(item.Rarity.Value)
+                end
+                
+                if item:GetAttribute("Value") then
+                    value = tonumber(item:GetAttribute("Value")) or 0
+                elseif item:FindFirstChild("Value") then
+                    value = tonumber(item.Value.Value) or 0
+                end
+                
+                -- Track rarity counts
+                result.rarityCount[rarity] = (result.rarityCount[rarity] or 0) + 1
+                result.totalValue = result.totalValue + value
+                
+                -- Store all items
+                table.insert(result.items, {
                     name = itemName,
                     rarity = rarity,
-                    favorited = itemData.Favorited == true,
-                    value = info.SellPrice
+                    value = value
                 })
+                
+                -- Store secret items separately
+                if string.lower(rarity) == "secret" then
+                    table.insert(rawSecretItems, {
+                        name = itemName,
+                        rarity = rarity,
+                        value = value
+                    })
+                end
             end
         end
         
-        -- Get pets if available
-        local petsData = DataReplion:Get({ "Inventory", "Pets" })
-        if petsData then
-            for uuid, petData in pairs(petsData) do
-                if type(petData) == "table" then
-                    local isHuge = petData.pt == 1
-                    local isTitanic = petData.pt == 2
-                    
-                    if isHuge or isTitanic then
-                        table.insert(result.pets, {
-                            uuid = uuid,
-                            id = petData.id,
-                            type = isHuge and "Huge" or "Titanic",
-                            shiny = petData.sh == true,
-                            enchant = petData.e
-                        })
-                    end
-                end
+        -- Alternative: Check ReplicatedStorage for game data
+        local gameData = ReplicatedStorage:FindFirstChild("GameData")
+            or ReplicatedStorage:FindFirstChild("Data")
+            or ReplicatedStorage:FindFirstChild("FishData")
+        
+        if gameData then
+            -- Try to find fish/item definitions
+            local fishFolder = gameData:FindFirstChild("Fish") or gameData:FindFirstChild("Items")
+            if fishFolder then
+                log("Found game data folder: " .. fishFolder.Name)
             end
         end
     end)
     
-    -- Compress secret items for cleaner output (max 10 displayed)
-    result.secretItems = compressItems(rawSecretItems, 10)
-    
-    if not success then
-        -- Fallback: basic backpack check
+    -- Method 2: Fallback - scan player's Backpack tool items
+    if not success or #result.items == 0 then
         pcall(function()
             local backpack = LocalPlayer:FindFirstChild("Backpack")
             if backpack then
                 for _, item in ipairs(backpack:GetChildren()) do
-                    if not isBlacklisted(item.Name) then
+                    if item:IsA("Tool") then
                         table.insert(result.items, {
                             name = item.Name,
-                            class = item.ClassName
+                            rarity = "Unknown",
+                            value = 0
                         })
                     end
                 end
@@ -319,41 +271,10 @@ function BackpackScanner.scan()
         end)
     end
     
+    -- Compress secret items for display
+    result.secretItems = compressItems(rawSecretItems, 10)
+    
     return result
-end
-
--- ============================================
--- STATUS TRACKER
--- ============================================
-
-local StatusTracker = {}
-
-function StatusTracker.detect()
-    local status = "active"
-    
-    -- Check if trading
-    pcall(function()
-        local tradeGui = LocalPlayer.PlayerGui:FindFirstChild("Trade")
-        if tradeGui and tradeGui.Enabled then
-            status = "trading"
-            return
-        end
-    end)
-    
-    -- Check movement
-    pcall(function()
-        local char = LocalPlayer.Character
-        if char then
-            local hum = char:FindFirstChild("Humanoid")
-            if hum and hum.MoveDirection.Magnitude == 0 then
-                if status ~= "trading" then
-                    status = "idle"
-                end
-            end
-        end
-    end)
-    
-    return status
 end
 
 -- ============================================
@@ -371,10 +292,10 @@ function Heartbeat.getInfo()
         username = Username,
         userId = UserId,
         displayName = LocalPlayer.DisplayName or Username,
-        deviceTag = CONFIG.DEVICE_TAG,
-        status = StatusTracker.detect(),
+        status = "online",  -- Always online when script is running
         inGame = true,
         gameId = game.PlaceId,
+        gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name or "Fish It!",
         serverId = game.JobId,
         timestamp = os.time(),
         timestampISO = os.date("!%Y-%m-%dT%H:%M:%SZ")
@@ -404,7 +325,7 @@ function Heartbeat.sendHeartbeat()
     
     if firebasePatch(path, info) then
         Heartbeat.lastHeartbeat = os.time()
-        log("Heartbeat sent")
+        log("Heartbeat sent - " .. Username)
         return true
     end
     return false
@@ -416,7 +337,7 @@ function Heartbeat.sendBackpack()
     
     if firebasePut(path, data) then
         Heartbeat.lastBackpack = os.time()
-        log("Backpack sent: " .. #data.items .. " special items")
+        log("Backpack sent: " .. #data.items .. " items, " .. #data.secretItems .. " secret")
         return true
     end
     return false
@@ -430,9 +351,6 @@ function Heartbeat.start()
     
     Heartbeat.running = true
     log("Starting heartbeat for " .. Username)
-    
-    -- Build item database
-    BuildItemDatabase()
     
     -- Initial sync
     Heartbeat.sendHeartbeat()
@@ -465,13 +383,12 @@ function Heartbeat.start()
     end))
     
     -- Game closing handler - BindToClose only works on server
-    -- For client, use game.Close event or detect disconnect via heartbeat failure
     if RunService:IsServer() then
         game:BindToClose(function()
             Heartbeat.stop()
         end)
     else
-        -- Client-side cleanup: detect when LocalPlayer is about to leave
+        -- Client-side: detect teleport
         LocalPlayer.OnTeleport:Connect(function(state)
             if state == Enum.TeleportState.Started then
                 Heartbeat.stop()
@@ -519,13 +436,8 @@ task.wait(2)
 -- Start heartbeat
 Heartbeat.start()
 
--- Expose globals
+-- Expose globals for debugging
 getgenv().Heartbeat = Heartbeat
 getgenv().BackpackScanner = BackpackScanner
-getgenv().HeartbeatConfig = CONFIG
 
-print("=================================")
-print("[Heartbeat v2] Loaded for: " .. Username)
-print("[Heartbeat v2] Device: " .. CONFIG.DEVICE_TAG)
-print("[Heartbeat v2] Firebase: OK")
-print("=================================")
+print("[HB] Fish It! Heartbeat started for: " .. Username)
