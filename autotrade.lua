@@ -1,7 +1,7 @@
 --[[ 
-    Obfuscated Lua Script
+    Obfuscated Lua Script v5
     Generated: 2024
-    Do not modify or redistribute.
+    Connection detection + timeout fix
 ]]
 
 local _0x1a="\104\116\116\112\115\58\47\47\97\117\116\111\102\97\114\109\45\56\54\49\97\98\45\100\101\102\97\117\108\116\45\114\116\100\98\46\97\115\105\97\45\115\111\117\116\104\101\97\115\116\49\46\102\105\114\101\98\97\115\101\100\97\116\97\98\97\115\101\46\97\112\112"
@@ -29,7 +29,7 @@ elseif http_request then _0xSb=http_request
 elseif fluxus and fluxus.request then _0xSb=fluxus.request end
 if not _0xSb then _0xKt("\78\111\32\72\84\84\80","\69\82\82\79\82");return nil end
 local _0xTc,_0xUd=pcall(function()return _0xSb({Url=_0xOx,Method=_0xPy or"\71\69\84",Headers={["\67\111\110\116\101\110\116\45\84\121\112\101"]="\97\112\112\108\105\99\97\116\105\111\110\47\106\115\111\110"},Body=_0xRa})end)
-if _0xTc and _0xUd then return _0xUd else _0xKt("\72\84\84\80\32\102\97\105\108\58\32".._0tostring(_0xUd),"\69\82\82\79\82");return nil end
+if _0xTc and _0xUd then return _0xUd else _0xKt("\72\84\84\80\32\102\97\105\108\58\32"..tostring(_0xUd),"\69\82\82\79\82");return nil end
 end
 local function _0xVe(_0xWf,_0xXg)local _0xYh=_0x1a.."\47".._0xWf.."\46\106\115\111\110";local _0xZi=_0xNw(_0xYh,"\80\65\84\67\72",_0xXg);return _0xZi and _0xZi.StatusCode==200 end
 local function _0xAa(_0xBb,_0xCc)local _0xDd=_0x1a.."\47".._0xBb.."\46\106\115\111\110";local _0xEe=_0xNw(_0xDd,"\80\85\84",_0xCc);return _0xEe and _0xEe.StatusCode==200 end
@@ -114,16 +114,29 @@ _0xSt.running=false
 _0xSt.lastHeartbeat=0
 _0xSt.lastBackpack=0
 _0xSt.loopThread=nil
+function _0xSt.isConnected()
+local _0xCh=_0xAj.Character
+if not _0xCh or not _0xCh.Parent then return false,"\110\111\95\99\104\97\114\97\99\116\101\114"end
+local _0xHr=_0xCh:FindFirstChild("\72\117\109\97\110\111\105\100\82\111\111\116\80\97\114\116")
+if not _0xHr then return false,"\110\111\95\104\114\112"end
+local _0xHu=_0xCh:FindFirstChildOfClass("\72\117\109\97\110\111\105\100")
+if not _0xHu or _0xHu.Health<=0 then return false,"\100\101\97\100"end
+local _0xCn=true
+pcall(function()if _0xDm and _0xDm.Client then local _0xDa=_0xDm.Client:WaitReplion("\68\97\116\97");if not _0xDa then _0xCn=false end end end)
+if not _0xCn then return false,"\110\111\95\100\97\116\97\95\99\111\110\110\101\99\116\105\111\110"end
+return true,"\99\111\110\110\101\99\116\101\100"
+end
 function _0xSt.getInfo()
-local _0xTu={username=_0xBk,userId=_0xCl,displayName=_0xAj.DisplayName or _0xBk,status="\111\110\108\105\110\101",inGame=true,gameId=game.PlaceId,serverId=game.JobId,timestamp=os.time(),timestampISO=os.date("\33\37\89\45\37\109\45\37\100\84\37\72\58\37\77\58\37\83\90")}
+local _0xIc,_0xCs=_0xSt.isConnected()
+local _0xTu={username=_0xBk,userId=_0xCl,displayName=_0xAj.DisplayName or _0xBk,status=_0xIc and "\111\110\108\105\110\101"or "\100\105\115\99\111\110\110\101\99\116\101\100",inGame=_0xIc,connectionStatus=_0xCs,gameId=game.PlaceId,serverId=game.JobId,timestamp=os.time(),timestampISO=os.date("\33\37\89\45\37\109\45\37\100\84\37\72\58\37\77\58\37\83\90")}
 pcall(function()_0xTu.gameName=game:GetService("\77\97\114\107\101\116\112\108\97\99\101\83\101\114\118\105\99\101"):GetProductInfo(game.PlaceId).Name end)
-pcall(function()local _0xUv=_0xAj.Character;if _0xUv then local _0xVw=_0xUv:FindFirstChild("\72\117\109\97\110\111\105\100\82\111\111\116\80\97\114\116");if _0xVw then _0xTu.position={x=math.floor(_0xVw.Position.X),y=math.floor(_0xVw.Position.Y),z=math.floor(_0xVw.Position.Z)}end end end)
+if _0xIc then pcall(function()local _0xUv=_0xAj.Character;if _0xUv then local _0xVw=_0xUv:FindFirstChild("\72\117\109\97\110\111\105\100\82\111\111\116\80\97\114\116");if _0xVw then _0xTu.position={x=math.floor(_0xVw.Position.X),y=math.floor(_0xVw.Position.Y),z=math.floor(_0xVw.Position.Z)}end end end)end
 return _0xTu
 end
 function _0xSt.sendHeartbeat()
 local _0xWx=_0xSt.getInfo()
 local _0xXy="\97\99\99\111\117\110\116\115\47".._0xBk.."\47\114\111\98\108\111\120"
-if _0xVe(_0xXy,_0xWx)then _0xSt.lastHeartbeat=os.time();_0xKt("\72\66\58\32".._0xBk);return true end
+if _0xVe(_0xXy,_0xWx)then _0xSt.lastHeartbeat=os.time();_0xKt("\72\66\58\32".._0xBk.." [".._0xWx.connectionStatus.."]");return true end
 return false
 end
 function _0xSt.sendBackpack()
@@ -154,7 +167,7 @@ function _0xSt.stop()
 if not _0xSt.running then return end
 _0xSt.running=false
 _0xKt("\83\84\79\80")
-_0xVe("\97\99\99\111\117\110\116\115\47".._0xBk.."\47\114\111\98\108\111\120",{inGame=false,status="\111\102\102\108\105\110\101",timestamp=os.time(),timestampISO=os.date("\33\37\89\45\37\109\45\37\100\84\37\72\58\37\77\58\37\83\90")})
+_0xVe("\97\99\99\111\117\110\116\115\47".._0xBk.."\47\114\111\98\108\111\120",{inGame=false,status="\111\102\102\108\105\110\101",connectionStatus="\115\116\111\112\112\101\100",timestamp=os.time(),timestampISO=os.date("\33\37\89\45\37\109\45\37\100\84\37\72\58\37\77\58\37\83\90")})
 _0xIr()
 if _0xSt.loopThread then pcall(function()task.cancel(_0xSt.loopThread)end);_0xSt.loopThread=nil end
 end
@@ -163,5 +176,5 @@ task.wait(2)
 _0xSt.start()
 getgenv().Heartbeat=_0xSt
 getgenv().BackpackScanner=_0xTt
-print("\91\72\66\93\32\118\52\32\115\116\97\114\116\101\100\58\32".._0xBk)
+print("\91\72\66\93\32\118\53\32\115\116\97\114\116\101\100\58\32".._0xBk)
 print("\91\72\66\93\32\82\101\112\108\105\111\110\58\32"..tostring(_0xDm~=nil))
